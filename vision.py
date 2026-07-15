@@ -184,35 +184,41 @@ class GameVision:
         return grid, cell_centers
 
     def extract_anagrams_letters(self, warped_screen):
-        # extract 6 letters arranged in a circle
+        # extract letters arranged in a horizontal row of tiles
         anagram_conf = self.config.get("anagrams", {
-            "cx": 500, "cy": 720, "r": 180, "crop_size": 80
+            "num_letters": 6, "x_start": 283, "x_end": 718,
+            "y_start": 871, "y_end": 963, "crop_padding": 0.15,
+            "submit_x": 500, "submit_y": 631
         })
-        cx = anagram_conf["cx"]
-        cy = anagram_conf["cy"]
-        r = anagram_conf["r"]
-        crop_size = anagram_conf["crop_size"]
-        
+        num_letters = anagram_conf["num_letters"]
+        x_start = anagram_conf["x_start"]
+        x_end = anagram_conf["x_end"]
+        y_start = anagram_conf["y_start"]
+        y_end = anagram_conf["y_end"]
+        crop_padding = anagram_conf.get("crop_padding", 0.15)
+
+        box_w = (x_end - x_start) / num_letters
+        pad_w = int(box_w * crop_padding)
+        pad_h = int((y_end - y_start) * crop_padding)
+
         letters = []
         bubble_coords = []
-        
-        # 6 bubbles at 60-degree steps, starting at top (-90deg) to match gamepigeon
-        angles = [-90, -30, 30, 90, 150, 210]
-        w_half = crop_size // 2
-        
-        for idx, angle_deg in enumerate(angles):
-            angle_rad = np.radians(angle_deg)
-            bx = int(cx + r * np.cos(angle_rad))
-            by = int(cy + r * np.sin(angle_rad))
-            
-            # crop a box centered on the letter square
-            crop = warped_screen[by-w_half:by+w_half, bx-w_half:bx+w_half]
-            
+
+        for i in range(num_letters):
+            x1 = int(x_start + i * box_w)
+            x2 = int(x_start + (i + 1) * box_w)
+
+            # shrink crop to stay inside the tile
+            crop = warped_screen[y_start+pad_h:y_end-pad_h, x1+pad_w:x2-pad_w]
+
             letter = self.ocr_letter(crop).lower()
             letters.append(letter)
-            bubble_coords.append((bx, by))
-            
-        # center = submit button
-        submit_coord = (cx, cy)
-        
+
+            # tile center in warped space
+            cx = (x1 + x2) // 2
+            cy = (y_start + y_end) // 2
+            bubble_coords.append((cx, cy))
+
+        submit_coord = (anagram_conf["submit_x"], anagram_conf["submit_y"])
+
         return letters, bubble_coords, submit_coord

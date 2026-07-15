@@ -39,16 +39,29 @@ def debug_wordhunt(vision, warped):
 
 def debug_anagrams(vision, warped):
     # mirrors the crop geometry in vision.extract_anagrams_letters
-    anagram_conf = vision.config.get("anagrams", {"cx": 500, "cy": 720, "r": 180, "crop_size": 80})
-    crop_size = anagram_conf["crop_size"]
-    half = crop_size // 2
+    anagram_conf = vision.config.get("anagrams", {
+        "num_letters": 6, "x_start": 283, "x_end": 718,
+        "y_start": 871, "y_end": 963, "crop_padding": 0.15,
+        "submit_x": 500, "submit_y": 631
+    })
+    num_letters = anagram_conf["num_letters"]
+    x_start, x_end = anagram_conf["x_start"], anagram_conf["x_end"]
+    y_start, y_end = anagram_conf["y_start"], anagram_conf["y_end"]
+    crop_padding = anagram_conf.get("crop_padding", 0.15)
+    box_w = (x_end - x_start) / num_letters
+    pad_w = int(box_w * crop_padding)
+    pad_h = int((y_end - y_start) * crop_padding)
 
     letters, bubble_coords, submit_coord = vision.extract_anagrams_letters(warped)
 
     annotated = warped.copy()
-    for letter, (bx, by) in zip(letters, bubble_coords):
-        cv2.rectangle(annotated, (bx - half, by - half), (bx + half, by + half), (0, 255, 0), 2)
-        cv2.putText(annotated, letter.upper(), (bx - half, by - half - 5),
+    for i, letter in enumerate(letters):
+        x1 = int(x_start + i * box_w)
+        x2 = int(x_start + (i + 1) * box_w)
+        # yellow = full tile, green = actual region fed to ocr
+        cv2.rectangle(annotated, (x1, y_start), (x2, y_end), (0, 255, 255), 1)
+        cv2.rectangle(annotated, (x1 + pad_w, y_start + pad_h), (x2 - pad_w, y_end - pad_h), (0, 255, 0), 2)
+        cv2.putText(annotated, letter.upper(), (x1 + 5, y_start - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
     cv2.circle(annotated, submit_coord, 8, (255, 0, 0), 2)
     return annotated, letters

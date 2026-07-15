@@ -22,9 +22,13 @@
     "crop_padding": 0.25
   },
   "anagrams": {
-    "cx": 500,
-    "cy": 720,
-    "r": 180,
-    "crop_size": 80
+    "num_letters": 6,
+    "x_start": 283,
+    "x_end": 718,
+    "y_start": 871,
+    "y_end": 963,
+    "crop_padding": 0.15,
+    "submit_x": 500,
+    "submit_y": 631
   }
 }
