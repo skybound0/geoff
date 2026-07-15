@@ -1,0 +1,30 @@
+{
+  "moonraker_url": "http://localhost:7125",
+  "camera_url": "http://localhost:8080/?action=stream",
+  "aruco_markers": {
+    "0": {"x": 100.0, "y": 250.0},
+    "1": {"x": 250.0, "y": 250.0},
+    "2": {"x": 250.0, "y": 100.0},
+    "3": {"x": 100.0, "y": 100.0}
+  },
+  "z_up": 15.0,
+  "z_down": 5.0,
+  "f_travel": 6000.0,
+  "f_swipe": 2000.0,
+  "max_wordhunt_words": 35,
+  "max_anagram_words": 40,
+  "tesseract_cmd": "/usr/bin/tesseract",
+  "wordhunt_grid": {
+    "x_start": 80,
+    "x_end": 920,
+    "y_start": 350,
+    "y_end": 850,
+    "crop_padding": 0.25
+  },
+  "anagrams": {
+    "cx": 500,
+    "cy": 720,
+    "r": 180,
+    "crop_size": 80
+  }
+}
