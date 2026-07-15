@@ -107,8 +107,8 @@ class WordGameSolver:
         return sorted_words
 
     def solve_anagrams(self, letters):
-        # letters is a list or string of 6 lowercase letters
-        letters = sorted(letters.lower())
+        # letters is a list or string of lowercase letters
+        letters = sorted(l.lower() for l in letters)
         found_words = []
 
         # check word is a submultiset of letters
