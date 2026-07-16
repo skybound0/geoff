@@ -13,6 +13,8 @@
   "f_swipe": 100.0,
   "max_wordhunt_words": 35,
   "max_anagram_words": 40,
+  "max_wordhunt_seconds": 45,
+  "max_anagram_seconds": 45,
   "tesseract_cmd": "/usr/bin/tesseract",
   "wordhunt_grid": {
     "x_start": 80,

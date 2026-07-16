@@ -38,7 +38,7 @@ def pause_for_phone_removal(control):
     print("just with nothing there to touch, so you can verify alignment safely.")
     input("press Enter once the phone is clear to continue...")
 
-def play_word_hunt(vision, solver, control, pause_before_move=False):
+def play_word_hunt(vision, solver, control, pause_before_move=False, start_time=None):
     # capture, ocr, solve, swipe
     print("capturing screen for word hunt...")
     frame = vision.capture_frame()
@@ -76,9 +76,14 @@ def play_word_hunt(vision, solver, control, pause_before_move=False):
     # longest words first, for max score
     words_played = 0
     max_words = control.config.get("max_wordhunt_words", 35) # time limit ~30-35 moves
+    max_seconds = control.config.get("max_wordhunt_seconds")
 
     for word, path in words:
         if words_played >= max_words:
+            break
+
+        if max_seconds is not None and start_time is not None and time.monotonic() - start_time >= max_seconds:
+            print(f"time limit of {max_seconds}s reached; stopping word hunt early.")
             break
 
         print(f"playing word: {word.upper()} (length {len(word)})")
@@ -99,7 +104,7 @@ def play_word_hunt(vision, solver, control, pause_before_move=False):
 
     print(f"word hunt game finished. played {words_played} words.")
 
-def play_anagrams(vision, solver, control, pause_before_move=False):
+def play_anagrams(vision, solver, control, pause_before_move=False, start_time=None):
     # capture, ocr, solve, tap
     print("capturing screen for anagrams...")
     frame = vision.capture_frame()
@@ -132,8 +137,13 @@ def play_anagrams(vision, solver, control, pause_before_move=False):
 
     words_played = 0
     max_words = control.config.get("max_anagram_words", 40) # cap to fit the round timer
+    max_seconds = control.config.get("max_anagram_seconds")
     for word in words:
         if words_played >= max_words:
+            break
+
+        if max_seconds is not None and start_time is not None and time.monotonic() - start_time >= max_seconds:
+            print(f"time limit of {max_seconds}s reached; stopping anagrams early.")
             break
 
         print(f"playing word: {word.upper()}")
@@ -182,6 +192,8 @@ def play_anagrams(vision, solver, control, pause_before_move=False):
     print(f"anagrams game finished. played {words_played} words.")
 
 def main():
+    start_time = time.monotonic()
+
     # parse args, dispatch to game routine
     parser = argparse.ArgumentParser(description="voron gamepigeon bot player")
     parser.add_argument("--game", required=True, choices=["wordhunt", "anagrams"], help="game type to play")
@@ -210,9 +222,9 @@ def main():
 
     try:
         if args.game == "wordhunt":
-            play_word_hunt(vision, solver, control, pause_before_move=args.pause_before_move)
+            play_word_hunt(vision, solver, control, pause_before_move=args.pause_before_move, start_time=start_time)
         elif args.game == "anagrams":
-            play_anagrams(vision, solver, control, pause_before_move=args.pause_before_move)
+            play_anagrams(vision, solver, control, pause_before_move=args.pause_before_move, start_time=start_time)
     finally:
         # always lift stylus, even on error
         control.park()
