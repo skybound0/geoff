@@ -123,10 +123,13 @@ class GameVision:
         if white_pixels < black_pixels:
             thresh = cv2.bitwise_not(thresh)
             
-        # single-char whitelist config -- uppercase only, since gamepigeon's
-        # letter tiles are always rendered in an uppercase sans-serif font;
-        # allowing lowercase candidates only adds ambiguity (e.g. l vs I)
-        custom_config = r"--psm 10 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        # single-char whitelist config -- lowercase candidates are kept even though
+        # gamepigeon only renders uppercase, because tesseract's lstm engine can
+        # refuse to output anything (rather than fall back to the next-best
+        # in-whitelist letter) when its top guess for a glyph is excluded outright;
+        # e.g. a thin vertical stroke's top guess is often lowercase "l", and without
+        # it in the whitelist that comes back empty instead of as a correctable "l"
+        custom_config = r"--psm 10 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         text = pytesseract.image_to_string(thresh, config=custom_config)
         
         # clean the extracted character (case matters here -- lowercase "l" vs
