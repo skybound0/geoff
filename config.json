@@ -14,7 +14,7 @@
     "y": 300.0,
     "z": 60.0
   },
-  "f_travel": 12000.0,
+  "f_travel": 30000.0,
   "f_swipe": 2000.0,
   "f_z": 1500.0,
   "max_wordhunt_words": 35,
