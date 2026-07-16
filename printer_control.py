@@ -14,6 +14,10 @@ class PrinterControl:
         self.z_down = self.config.get("z_down", 5.0)
         self.f_travel = self.config.get("f_travel", 6000.0)
         self.f_swipe = self.config.get("f_swipe", 2000.0)
+        self.f_z = self.config.get("f_z", 3000.0)
+
+        # reuse one connection instead of reconnecting for every gcode call
+        self.session = requests.Session()
 
         # warped pixels (1000x1000) -> printer mm transform
         self.init_coordinate_transform()
@@ -25,7 +29,7 @@ class PrinterControl:
         # axis limits from moonraker (x/y only)
         try:
             url = f"{self.moonraker_url}/printer/objects/query?toolhead=axis_minimum,axis_maximum"
-            response = requests.get(url, timeout=5)
+            response = self.session.get(url, timeout=5)
             result = response.json()["result"]["status"]["toolhead"]
             x_min, y_min = result["axis_minimum"][0], result["axis_minimum"][1]
             x_max, y_max = result["axis_maximum"][0], result["axis_maximum"][1]
@@ -47,7 +51,7 @@ class PrinterControl:
             return True
         try:
             url = f"{self.moonraker_url}/printer/objects/query?toolhead=homed_axes"
-            response = requests.get(url, timeout=5)
+            response = self.session.get(url, timeout=5)
             homed = response.json()["result"]["status"]["toolhead"]["homed_axes"]
             return all(axis in homed for axis in "xyz")
         except Exception as e:
@@ -94,7 +98,7 @@ class PrinterControl:
         payload = {"script": script}
         
         try:
-            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            response = self.session.post(url, json=payload, headers=headers, timeout=10)
             if response.status_code == 200:
                 return True
             else:
@@ -115,15 +119,15 @@ class PrinterControl:
             return False
 
         setup_script = (
-            f"G90\n"                     # absolute positioning
-            f"G1 Z{self.z_up} F1500\n"    # lift stylus
-            f"M400\n"                     # wait for the move to physically finish
+            f"G90\n"                        # absolute positioning
+            f"G1 Z{self.z_up} F{self.f_z}\n" # lift stylus
+            f"M400\n"                        # wait for the move to physically finish
         )
         return self.send_gcode(setup_script)
 
     def park(self):
         # lift stylus + reset status; safe to call after a failure too
-        self.send_gcode(f"G1 Z{self.z_up} F1500\nM400\n")
+        self.send_gcode(f"G1 Z{self.z_up} F{self.f_z}\nM400\n")
         self.set_status("Game Bot Idle")
 
     def tap(self, px, py):
@@ -136,9 +140,9 @@ class PrinterControl:
         gcode = (
             f"; tap at pixel {px}, {py} -> printer {x_mm:.2f}, {y_mm:.2f}\n"
             f"G1 X{x_mm:.2f} Y{y_mm:.2f} F{self.f_travel}\n"
-            f"G1 Z{self.z_down} F1500\n"
+            f"G1 Z{self.z_down} F{self.f_z}\n"
             f"G4 P100\n"                  # dwell for 100 milliseconds
-            f"G1 Z{self.z_up} F1500\n"
+            f"G1 Z{self.z_up} F{self.f_z}\n"
             f"M400\n"                     # wait for the move to physically finish before we return
         )
         return self.send_gcode(gcode)
@@ -159,12 +163,12 @@ class PrinterControl:
         gcode = (
             f"; swipe path starting at pixel {points[0][0]}, {points[0][1]} -> printer {start_x:.2f}, {start_y:.2f}\n"
             f"G1 X{start_x:.2f} Y{start_y:.2f} F{self.f_travel}\n"
-            f"G1 Z{self.z_down} F1500\n"
+            f"G1 Z{self.z_down} F{self.f_z}\n"
         )
 
         for x_mm, y_mm in mm_points[1:]:
             gcode += f"G1 X{x_mm:.2f} Y{y_mm:.2f} F{self.f_swipe}\n"
 
-        gcode += f"G1 Z{self.z_up} F1500\nM400\n"
+        gcode += f"G1 Z{self.z_up} F{self.f_z}\nM400\n"
 
         return self.send_gcode(gcode)

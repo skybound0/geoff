@@ -11,6 +11,7 @@
   "z_down": 43.5,
   "f_travel": 12000.0,
   "f_swipe": 2000.0,
+  "f_z": 1500.0,
   "max_wordhunt_words": 35,
   "max_anagram_words": 40,
   "max_wordhunt_seconds": 45,
