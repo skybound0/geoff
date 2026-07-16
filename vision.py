@@ -127,16 +127,18 @@ class GameVision:
         custom_config = r"--psm 10 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         text = pytesseract.image_to_string(thresh, config=custom_config)
         
-        # clean the extracted character
-        char = text.strip().upper()
+        # clean the extracted character (case matters here -- lowercase "l" vs
+        # uppercase "I" is exactly the ambiguity corrections below fixes, so
+        # check corrections before uppercasing, not after)
+        char = text.strip()
         if not char:
             return "?"
-            
+
         # handle common ocr misinterpretations
         corrections = {
             "0": "O", "1": "I", "|": "I", "l": "I", "5": "S", "8": "B", "2": "Z", "6": "G"
         }
-        return corrections.get(char[0], char[0])
+        return corrections.get(char[0], char[0]).upper()
 
     def extract_word_hunt_grid(self, warped_screen):
         # extract 4x4 letter grid from warped screen
