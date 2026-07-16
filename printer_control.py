@@ -15,6 +15,7 @@ class PrinterControl:
         self.f_travel = self.config.get("f_travel", 6000.0)
         self.f_swipe = self.config.get("f_swipe", 2000.0)
         self.f_z = self.config.get("f_z", 3000.0)
+        self.touch_dwell_ms = self.config.get("touch_dwell_ms", 100)
 
         # reuse one connection instead of reconnecting for every gcode call
         self.session = requests.Session()
@@ -153,7 +154,7 @@ class PrinterControl:
             f"; tap at pixel {px}, {py} -> printer {x_mm:.2f}, {y_mm:.2f}\n"
             f"G1 X{x_mm:.2f} Y{y_mm:.2f} F{self.f_travel}\n"
             f"G1 Z{self.z_down} F{self.f_z}\n"
-            f"G4 P100\n"                  # dwell for 100 milliseconds
+            f"G4 P{self.touch_dwell_ms}\n" # dwell so the touchscreen registers contact
             f"G1 Z{self.z_up} F{self.f_z}\n"
             f"M400\n"                     # wait for the move to physically finish before we return
         )
