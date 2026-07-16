@@ -34,8 +34,8 @@
   },
   "anagrams": {
     "num_letters": 6,
-    "x_start": 283,
-    "x_end": 718,
+    "x_start": 280,
+    "x_end": 724,
     "y_start": 871,
     "y_end": 963,
     "crop_padding": 0.15,
