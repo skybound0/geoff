@@ -7,8 +7,8 @@
     "2": {"x": 283.5, "y": 62.0},
     "3": {"x": 143.5, "y": 62.0}
   },
-  "z_up": 45.0,
-  "z_down": 43.5,
+  "z_up": 44.5,
+  "z_down": 43.0,
   "park_position": {
     "x": 175.0,
     "y": 300.0,
@@ -16,14 +16,14 @@
   },
   "f_travel": 30000.0,
   "f_swipe": 2000.0,
-  "f_z": 1500.0,
+  "f_z": 3000.0,
   "max_wordhunt_words": 35,
   "max_anagram_words": 40,
   "max_wordhunt_seconds": 45,
   "max_anagram_seconds": 45,
   "wordhunt_swipe_delay": 0.2,
-  "anagram_tap_delay": 0.01,
-  "anagram_word_delay": 0.1,
+  "anagram_tap_delay": 0,
+  "anagram_word_delay": 0,
   "tesseract_cmd": "/usr/bin/tesseract",
   "wordhunt_grid": {
     "x_start": 80,
