@@ -30,7 +30,15 @@ def release_lock():
     except FileNotFoundError:
         pass
 
-def play_word_hunt(vision, solver, control):
+def pause_for_phone_removal(control):
+    control.set_status("Remove phone, then press Enter")
+    print()
+    print("OCR and solving are done. Remove the phone from the bed now --")
+    print("the stylus will still move/tap/swipe through the solved coordinates,")
+    print("just with nothing there to touch, so you can verify alignment safely.")
+    input("press Enter once the phone is clear to continue...")
+
+def play_word_hunt(vision, solver, control, pause_before_move=False):
     # capture, ocr, solve, swipe
     print("capturing screen for word hunt...")
     frame = vision.capture_frame()
@@ -62,6 +70,9 @@ def play_word_hunt(vision, solver, control):
         print("failed to prepare printer (see above). aborting.")
         return
 
+    if pause_before_move:
+        pause_for_phone_removal(control)
+
     # longest words first, for max score
     words_played = 0
     max_words = control.config.get("max_wordhunt_words", 35) # time limit ~30-35 moves
@@ -88,7 +99,7 @@ def play_word_hunt(vision, solver, control):
 
     print(f"word hunt game finished. played {words_played} words.")
 
-def play_anagrams(vision, solver, control):
+def play_anagrams(vision, solver, control, pause_before_move=False):
     # capture, ocr, solve, tap
     print("capturing screen for anagrams...")
     frame = vision.capture_frame()
@@ -115,6 +126,9 @@ def play_anagrams(vision, solver, control):
     if not control.setup_printer():
         print("failed to prepare printer (see above). aborting.")
         return
+
+    if pause_before_move:
+        pause_for_phone_removal(control)
 
     words_played = 0
     max_words = control.config.get("max_anagram_words", 40) # cap to fit the round timer
@@ -172,6 +186,10 @@ def main():
     parser = argparse.ArgumentParser(description="voron gamepigeon bot player")
     parser.add_argument("--game", required=True, choices=["wordhunt", "anagrams"], help="game type to play")
     parser.add_argument("--dry-run", action="store_true", help="simulate play without moving printer")
+    parser.add_argument("--pause-before-move", action="store_true",
+                         help="run ocr/solve for real, then pause so you can remove the phone before the "
+                              "printer executes the solved taps/swipes -- lets you verify coordinate "
+                              "alignment in free air with nothing to damage")
     args = parser.parse_args()
 
     # resolve paths relative to script dir, not caller's cwd
@@ -192,9 +210,9 @@ def main():
 
     try:
         if args.game == "wordhunt":
-            play_word_hunt(vision, solver, control)
+            play_word_hunt(vision, solver, control, pause_before_move=args.pause_before_move)
         elif args.game == "anagrams":
-            play_anagrams(vision, solver, control)
+            play_anagrams(vision, solver, control, pause_before_move=args.pause_before_move)
     finally:
         # always lift stylus, even on error
         control.park()
