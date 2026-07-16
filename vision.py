@@ -123,8 +123,10 @@ class GameVision:
         if white_pixels < black_pixels:
             thresh = cv2.bitwise_not(thresh)
             
-        # single-char whitelist config
-        custom_config = r"--psm 10 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        # single-char whitelist config -- uppercase only, since gamepigeon's
+        # letter tiles are always rendered in an uppercase sans-serif font;
+        # allowing lowercase candidates only adds ambiguity (e.g. l vs I)
+        custom_config = r"--psm 10 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         text = pytesseract.image_to_string(thresh, config=custom_config)
         
         # clean the extracted character (case matters here -- lowercase "l" vs
