@@ -139,7 +139,6 @@ def play_anagrams(vision, solver, control, pause_before_move=False, start_time=N
     words_played = 0
     max_words = control.config.get("max_anagram_words", 40) # cap to fit the round timer
     max_seconds = control.config.get("max_anagram_seconds")
-    tap_delay = control.config.get("anagram_tap_delay", 0.1)
     word_delay = control.config.get("anagram_word_delay", 0.3)
     for word in words:
         if words_played >= max_words:
@@ -173,19 +172,10 @@ def play_anagrams(vision, solver, control, pause_before_move=False, start_time=N
             print(f"skipping word {word} due to bubble matching error")
             continue
 
-        tap_failed = False
-        for px, py in tap_coordinates:
-            if not control.tap(px, py):
-                print("tap failed; stopping anagrams early so we don't compound the error.")
-                tap_failed = True
-                break
-            time.sleep(tap_delay) # buffer for app to register the tap
-        if tap_failed:
-            break
-
-        # submit button tap
-        if not control.tap(submit_coord[0], submit_coord[1]):
-            print("submit tap failed; stopping anagrams early so we don't compound the error.")
+        # letters + submit as one batched gcode block, so klipper's queue
+        # stays continuous across the whole word instead of resyncing per letter
+        if not control.tap_sequence(tap_coordinates + [submit_coord]):
+            print("tap sequence failed; stopping anagrams early so we don't compound the error.")
             break
         words_played += 1
 

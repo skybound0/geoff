@@ -160,6 +160,33 @@ class PrinterControl:
         )
         return self.send_gcode(gcode)
 
+    def tap_sequence(self, points):
+        # multiple taps as a single gcode block/http call, so klipper's move
+        # queue never fully drains between taps (unlike calling tap() per point,
+        # each M400 forces a full resync, adding real dead time between taps)
+        if not points:
+            return True
+
+        # validate every point first, so a bad one aborts the whole sequence
+        mm_points = [self.pixel_to_printer(px, py) for px, py in points]
+        for x_mm, y_mm in mm_points:
+            if not self.in_bounds(x_mm, y_mm):
+                print(f"refusing to tap: computed coordinate ({x_mm:.2f}, {y_mm:.2f}) mm is outside the printer's bed bounds")
+                return False
+
+        gcode = ""
+        for (px, py), (x_mm, y_mm) in zip(points, mm_points):
+            gcode += (
+                f"; tap at pixel {px}, {py} -> printer {x_mm:.2f}, {y_mm:.2f}\n"
+                f"G1 X{x_mm:.2f} Y{y_mm:.2f} F{self.f_travel}\n"
+                f"G1 Z{self.z_down} F{self.f_z}\n"
+                f"G4 P{self.touch_dwell_ms}\n"
+                f"G1 Z{self.z_up} F{self.f_z}\n"
+            )
+        gcode += "M400\n" # wait for the whole sequence to physically finish before we return
+
+        return self.send_gcode(gcode)
+
     def swipe(self, points):
         # lift, move to start, drop, drag through points, lift
         if not points:
