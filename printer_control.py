@@ -126,8 +126,20 @@ class PrinterControl:
         return self.send_gcode(setup_script)
 
     def park(self):
-        # lift stylus + reset status; safe to call after a failure too
-        self.send_gcode(f"G1 Z{self.z_up} F{self.f_z}\nM400\n")
+        # lift stylus, move to the configured park position, reset status; safe to call after a failure too
+        gcode = f"G1 Z{self.z_up} F{self.f_z}\n"
+
+        park_pos = self.config.get("park_position")
+        if park_pos:
+            x, y, z = park_pos["x"], park_pos["y"], park_pos["z"]
+            if self.in_bounds(x, y):
+                gcode += f"G1 X{x} Y{y} F{self.f_travel}\n"
+                gcode += f"G1 Z{z} F{self.f_z}\n"
+            else:
+                print(f"warning: configured park_position ({x}, {y}) is outside the printer's bed bounds; skipping park move")
+
+        gcode += "M400\n"
+        self.send_gcode(gcode)
         self.set_status("Game Bot Idle")
 
     def tap(self, px, py):
