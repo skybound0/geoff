@@ -35,10 +35,10 @@
   "anagrams": {
     "num_letters": 6,
     "x_start": 280,
-    "x_end": 724,
+    "x_end": 722,
     "y_start": 871,
     "y_end": 963,
-    "crop_padding": 0.15,
+    "crop_padding": 0.25,
     "submit_x": 500,
     "submit_y": 631
   }
