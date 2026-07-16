@@ -38,7 +38,7 @@
     "x_end": 718,
     "y_start": 871,
     "y_end": 963,
-    "crop_padding": 0.1,
+    "crop_padding": 0.15,
     "submit_x": 500,
     "submit_y": 631
   }
