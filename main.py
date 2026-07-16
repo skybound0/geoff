@@ -77,6 +77,7 @@ def play_word_hunt(vision, solver, control, pause_before_move=False, start_time=
     words_played = 0
     max_words = control.config.get("max_wordhunt_words", 35) # time limit ~30-35 moves
     max_seconds = control.config.get("max_wordhunt_seconds")
+    swipe_delay = control.config.get("wordhunt_swipe_delay", 0.2)
 
     for word, path in words:
         if words_played >= max_words:
@@ -100,7 +101,7 @@ def play_word_hunt(vision, solver, control, pause_before_move=False, start_time=
         words_played += 1
 
         # buffer for the app to register the swipe (motion itself is already done)
-        time.sleep(0.2)
+        time.sleep(swipe_delay)
 
     print(f"word hunt game finished. played {words_played} words.")
 
@@ -138,6 +139,8 @@ def play_anagrams(vision, solver, control, pause_before_move=False, start_time=N
     words_played = 0
     max_words = control.config.get("max_anagram_words", 40) # cap to fit the round timer
     max_seconds = control.config.get("max_anagram_seconds")
+    tap_delay = control.config.get("anagram_tap_delay", 0.1)
+    word_delay = control.config.get("anagram_word_delay", 0.3)
     for word in words:
         if words_played >= max_words:
             break
@@ -176,7 +179,7 @@ def play_anagrams(vision, solver, control, pause_before_move=False, start_time=N
                 print("tap failed; stopping anagrams early so we don't compound the error.")
                 tap_failed = True
                 break
-            time.sleep(0.1) # buffer for app to register the tap
+            time.sleep(tap_delay) # buffer for app to register the tap
         if tap_failed:
             break
 
@@ -187,7 +190,7 @@ def play_anagrams(vision, solver, control, pause_before_move=False, start_time=N
         words_played += 1
 
         # buffer between words
-        time.sleep(0.3)
+        time.sleep(word_delay)
 
     print(f"anagrams game finished. played {words_played} words.")
 
